@@ -1,32 +1,146 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>My Video App</title>
+<meta charset="UTF-8">
+<title>Viral Zone</title>
+
 <style>
+
 body{
-background:black;
+background:#0b0b1a;
 color:white;
-font-family:sans-serif;
+font-family:Arial;
+margin:0;
+}
+
+.header{
 text-align:center;
+padding:20px;
+background:linear-gradient(90deg,#6a00ff,#ff00aa);
+margin:10px;
+border-radius:15px;
+}
+
+.video-card{
+background:#141432;
+margin:15px;
+padding:15px;
+border-radius:15px;
 }
 
 video{
-width:90%;
-margin-top:20px;
+width:100%;
 border-radius:10px;
 }
+
+button{
+padding:10px 15px;
+border:none;
+border-radius:10px;
+background:#ff0066;
+color:white;
+margin-top:10px;
+}
+
+.admin{
+margin:15px;
+}
+
+input{
+padding:10px;
+border-radius:10px;
+border:none;
+width:70%;
+}
+
 </style>
+
 </head>
 
 <body>
 
-<h2>My Video Channel</h2>
+<div class="header">
+<h2>VIRAL ZONE 🔥</h2>
+<p>Premium Video Channel</p>
+</div>
 
+<div class="admin">
+
+<h3>Admin Login</h3>
+
+<input id="pass" placeholder="Enter password">
+<button onclick="login()">Login</button>
+
+<div id="uploadBox" style="display:none">
+
+<h3>Upload Video</h3>
+
+<input id="videoUrl" placeholder="Paste video link">
+<button onclick="addVideo()">Upload</button>
+
+</div>
+
+</div>
+
+<h2 style="margin-left:15px">Videos</h2>
+
+<div id="videos"></div>
+
+<script>
+
+let password="258023";
+
+let videos=[];
+
+function login(){
+
+let p=document.getElementById("pass").value;
+
+if(p==password){
+
+document.getElementById("uploadBox").style.display="block";
+
+alert("Admin login success");
+
+}else{
+
+alert("Wrong password");
+
+}
+
+}
+
+function addVideo(){
+
+let url=document.getElementById("videoUrl").value;
+
+videos.unshift(url);
+
+showVideos();
+
+}
+
+function showVideos(){
+
+let html="";
+
+videos.forEach(v=>{
+
+html+=`
+<div class="video-card">
 <video controls>
-<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+<source src="${v}" type="video/mp4">
 </video>
+</div>
+`;
 
-<p>Welcome to my video channel</p>
+});
+
+document.getElementById("videos").innerHTML=html;
+
+}
+
+</script>
 
 </body>
-</html>
+  </html>
