@@ -6,51 +6,67 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <style>
+
 body{
-background:#0b0b1a;
+background:#0f0f1a;
 color:white;
 font-family:Arial;
 text-align:center;
 }
 
 .header{
-background:linear-gradient(90deg,#6a00ff,#ff00aa);
+background:linear-gradient(90deg,#ff0066,#6a00ff);
 padding:20px;
 border-radius:15px;
 margin:15px;
 }
 
+.videoCard{
+background:#1b1b2f;
+margin:20px;
+padding:15px;
+border-radius:15px;
+}
+
 video{
-width:90%;
-margin-top:20px;
+width:100%;
 border-radius:10px;
 }
 
 button{
-padding:10px 20px;
-background:#ff0066;
-color:white;
+padding:8px 15px;
+margin:5px;
 border:none;
 border-radius:10px;
+background:#ff0066;
+color:white;
 }
 
 input{
-padding:10px;
+padding:8px;
 border-radius:10px;
 border:none;
-margin:10px;
+margin:5px;
 }
-</style>
 
+.commentBox{
+background:#111;
+padding:10px;
+border-radius:10px;
+margin-top:10px;
+}
+
+</style>
 </head>
 
 <body>
 
 <div class="header">
-<h2>VIRAL ZONE 🔥</h2>
-<p>Exclusive Video Channel</p>
+<h2>🔥 VIRAL ZONE</h2>
+<p>Watch Viral Videos</p>
 </div>
 
 <h3>Admin Upload</h3>
@@ -61,11 +77,13 @@ margin:10px;
 <input type="file" id="videoFile">
 <br>
 
-<button onclick="uploadVideo()">Upload Video</button>
+<button onclick="uploadVideo()">Upload</button>
+
+<hr>
 
 <h2>Videos</h2>
 
-<div id="videos"></div>
+<div id="videoList"></div>
 
 <script>
 
@@ -83,7 +101,8 @@ measurementId: "G-QVPHL1VW1S"
 
 firebase.initializeApp(firebaseConfig);
 
-const storage = firebase.storage();
+const storage=firebase.storage();
+const db=firebase.firestore();
 
 function uploadVideo(){
 
@@ -102,19 +121,307 @@ ref.put(file).then(()=>{
 
 ref.getDownloadURL().then(url=>{
 
-let html=`
-<video controls>
-<source src="${url}">
-</video>
-`;
+db.collection("videos").add({
+url:url,
+likes:0,
+views:0
+});
 
-document.getElementById("videos").innerHTML+=html;
+loadVideos();
 
 });
 
 });
 
 }
+
+function loadVideos(){
+
+document.getElementById("videoList").innerHTML="";
+
+db.collection("videos").get().then(snapshot=>{
+
+snapshot.forEach(doc=>{
+
+let v=doc.data();
+
+let html=`
+
+<div class="videoCard">
+
+<video controls onclick="addView('${doc.id}')">
+<source src="${v.url}">
+</video>
+
+<p>👁 ${v.views} Views | ❤️ ${v.likes}</p>
+
+<button onclick="likeVideo('${doc.id}',${v.likes})">Like</button>
+
+<div class="commentBox">
+<input id="c${doc.id}" placeholder="Write comment">
+<button onclick="comment('${doc.id}')">Send</button>
+</div>
+
+</div>
+
+`;
+
+document.getElementById("videoList").innerHTML+=html;
+
+});
+
+});
+
+}
+
+function likeVideo(id,likes){
+
+db.collection("videos").doc(id).update({
+likes:likes+1
+}).then(loadVideos);
+
+}
+
+function addView(id){
+
+let ref=db.collection("videos").doc(id);
+
+ref.get().then(doc=>{
+let v=doc.data();
+ref.update({
+views:v.views+1
+});
+});
+
+}
+
+function comment(id){
+
+let text=document.getElementById("c"+id).value;
+
+db.collection("videos").doc(id).collection("comments").add({
+text:text
+});
+
+alert("Comment added");
+
+}
+
+loadVideos();
+
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Viral Zone</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<style>
+
+body{
+background:#0f0f1a;
+color:white;
+font-family:Arial;
+text-align:center;
+}
+
+.header{
+background:linear-gradient(90deg,#ff0066,#6a00ff);
+padding:20px;
+border-radius:15px;
+margin:15px;
+}
+
+.videoCard{
+background:#1b1b2f;
+margin:20px;
+padding:15px;
+border-radius:15px;
+}
+
+video{
+width:100%;
+border-radius:10px;
+}
+
+button{
+padding:8px 15px;
+margin:5px;
+border:none;
+border-radius:10px;
+background:#ff0066;
+color:white;
+}
+
+input{
+padding:8px;
+border-radius:10px;
+border:none;
+margin:5px;
+}
+
+.commentBox{
+background:#111;
+padding:10px;
+border-radius:10px;
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<h2>🔥 VIRAL ZONE</h2>
+<p>Watch Viral Videos</p>
+</div>
+
+<h3>Admin Upload</h3>
+
+<input type="password" id="pass" placeholder="Password">
+<br>
+
+<input type="file" id="videoFile">
+<br>
+
+<button onclick="uploadVideo()">Upload</button>
+
+<hr>
+
+<h2>Videos</h2>
+
+<div id="videoList"></div>
+
+<script>
+
+let password="258023";
+
+const firebaseConfig = {
+apiKey: "AIzaSyAGrk6d8IYA38PEIS2cFwTAvpwLwzCLiXw",
+authDomain: "viral-zone-app-66b08.firebaseapp.com",
+projectId: "viral-zone-app-66b08",
+storageBucket: "viral-zone-app-66b08.firebasestorage.app",
+messagingSenderId: "700600612193",
+appId: "1:700600612193:web:6c0806e03612c90bef8120",
+measurementId: "G-QVPHL1VW1S"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const storage=firebase.storage();
+const db=firebase.firestore();
+
+function uploadVideo(){
+
+let p=document.getElementById("pass").value;
+
+if(p!=password){
+alert("Wrong password");
+return;
+}
+
+let file=document.getElementById("videoFile").files[0];
+
+let ref=storage.ref("videos/"+file.name);
+
+ref.put(file).then(()=>{
+
+ref.getDownloadURL().then(url=>{
+
+db.collection("videos").add({
+url:url,
+likes:0,
+views:0
+});
+
+loadVideos();
+
+});
+
+});
+
+}
+
+function loadVideos(){
+
+document.getElementById("videoList").innerHTML="";
+
+db.collection("videos").get().then(snapshot=>{
+
+snapshot.forEach(doc=>{
+
+let v=doc.data();
+
+let html=`
+
+<div class="videoCard">
+
+<video controls onclick="addView('${doc.id}')">
+<source src="${v.url}">
+</video>
+
+<p>👁 ${v.views} Views | ❤️ ${v.likes}</p>
+
+<button onclick="likeVideo('${doc.id}',${v.likes})">Like</button>
+
+<div class="commentBox">
+<input id="c${doc.id}" placeholder="Write comment">
+<button onclick="comment('${doc.id}')">Send</button>
+</div>
+
+</div>
+
+`;
+
+document.getElementById("videoList").innerHTML+=html;
+
+});
+
+});
+
+}
+
+function likeVideo(id,likes){
+
+db.collection("videos").doc(id).update({
+likes:likes+1
+}).then(loadVideos);
+
+}
+
+function addView(id){
+
+let ref=db.collection("videos").doc(id);
+
+ref.get().then(doc=>{
+let v=doc.data();
+ref.update({
+views:v.views+1
+});
+});
+
+}
+
+function comment(id){
+
+let text=document.getElementById("c"+id).value;
+
+db.collection("videos").doc(id).collection("comments").add({
+text:text
+});
+
+alert("Comment added");
+
+}
+
+loadVideos();
 
 </script>
 
